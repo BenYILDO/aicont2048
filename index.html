@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI İçerik Üreticisi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header>
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <h1 id="site-title">AI İçerik Üreticisi</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">Ana Sayfa</a></li>
+                    <li><a href="#about-section">Hakkında</a></li>
+                    <li><a href="#" id="theme-toggle"><i class="fa-solid fa-moon"></i></a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h2 id="hero-title">Yapay Zeka ile İçerik Üretme</h2>
+                    <p id="hero-description">Formu doldurarak saniyeler içinde AI destekli içerik oluşturun.</p>
+                    <a href="#form-section" class="btn primary-btn" id="cta-button">Hemen Başla</a>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.pexels.com/photos/2599244/pexels-photo-2599244.jpeg?auto=compress&cs=tinysrgb&w=600" alt="AI İçerik">
+                </div>
+            </section>
+
+            <section id="about-section" class="about-section">
+                <h2 id="about-title">Nasıl Çalışır?</h2>
+                <div class="steps-container">
+                    <div class="step">
+                        <div class="step-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+                        <h3>1. Formu Doldur</h3>
+                        <p id="step1-description">İhtiyacınıza uygun parametreleri belirleyin ve formu gönderin.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon"><i class="fa-solid fa-gear"></i></div>
+                        <h3>2. İşleniyor</h3>
+                        <p id="step2-description">Yapay zeka algoritmalarımız verilerinizi işler ve analiz eder.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                        <h3>3. Sonuç</h3>
+                        <p id="step3-description">Oluşturulan içerik anında görüntülenir ve kullanıma hazır olur.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="form-section" class="form-section">
+                <div class="container">
+                    <div class="form-container">
+                        <h2 id="form-title">İçerik Oluştur</h2>
+                        <div id="tally-form" class="tally-form-container">
+                            <!-- Tally.so form will be loaded here -->
+                            <div class="loading-placeholder">
+                                <div class="skeleton-loader"></div>
+                                <div class="skeleton-loader"></div>
+                                <div class="skeleton-loader"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-container">
+                        <h2 id="result-title">Oluşturulan İçerik</h2>
+                        <div id="result-panel" class="result-panel">
+                            <div id="loading-indicator" class="loading-indicator hidden">
+                                <div class="spinner"></div>
+                                <p>İçerik oluşturuluyor...</p>
+                            </div>
+                            <div id="no-result" class="no-result">
+                                <i class="fa-solid fa-file-circle-question"></i>
+                                <p>Henüz içerik oluşturulmadı. Formu doldurup gönderin.</p>
+                            </div>
+                            <div id="result-content" class="result-content hidden">
+                                <div id="content-display"></div>
+                                <div class="result-actions">
+                                    <button id="copy-btn" class="btn secondary-btn">
+                                        <i class="fa-regular fa-clipboard"></i> Kopyala
+                                    </button>
+                                    <button id="new-content-btn" class="btn primary-btn">
+                                        <i class="fa-solid fa-plus"></i> Yeni İçerik
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-container">
+                <div class="footer-info">
+                    <p id="footer-copyright">&copy; 2025 AI İçerik Üreticisi. Tüm hakları saklıdır.</p>
+                </div>
+                <div class="footer-social">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
