@@ -202,6 +202,73 @@ async function showSheetData() {
 // Sayfa yüklendiğinde Google Sheets verisini göster
 window.addEventListener('DOMContentLoaded', showSheetData);
 
+// --- Otomasyon: Form submit sonrası loading ve otomatik güncelleme ---
+let sheetPollingInterval = null;
+
+function startSheetPolling() {
+    let attempts = 0;
+    const maxAttempts = 12; // 12x5=60sn
+    showLoadingState();
+    if (sheetPollingInterval) clearInterval(sheetPollingInterval);
+    sheetPollingInterval = setInterval(async () => {
+        attempts++;
+        const lastContent = await getLastSheetContent();
+        if (lastContent) {
+            clearInterval(sheetPollingInterval);
+            showEditableResult(lastContent);
+        } else if (attempts >= maxAttempts) {
+            clearInterval(sheetPollingInterval);
+            showNoResultState();
+        }
+    }, 5000);
+}
+
+async function getLastSheetContent() {
+    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
+    const data = await fetchSheetData(sheetId);
+    let lastContent = "";
+    for (let i = data.length - 1; i >= 0; i--) {
+        if (data[i][8]) {
+            lastContent = data[i][8];
+            break;
+        }
+    }
+    return lastContent;
+}
+
+function showEditableResult(content) {
+    $('#loading-indicator').classList.add('hidden');
+    $('#no-result').classList.add('hidden');
+    const contentDiv = $('#content-display');
+    contentDiv.innerText = content;
+    contentDiv.setAttribute('contenteditable', 'true');
+    $('#result-content').classList.remove('hidden');
+}
+
+// --- Kopyala ve İndir butonları ---
+function setupDownloadButton() {
+    const downloadBtn = $('#download-btn');
+    if (!downloadBtn) return;
+    downloadBtn.addEventListener('click', () => {
+        const content = $('#content-display').innerText;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'icerik.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+}
+
+// --- Sayfa yüklendiğinde butonları hazırla ---
+window.addEventListener('DOMContentLoaded', () => {
+    setupCopyButton();
+    setupDownloadButton();
+});
+
 // Sayfa yüklendiğinde çalışacak UI hazırlık fonksiyonu
 const initializeUI = () => {
   // Temayı yükle
