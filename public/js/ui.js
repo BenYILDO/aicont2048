@@ -169,6 +169,38 @@ const setupSmoothScrolling = () => {
   });
 };
 
+// Google Sheets'ten veri çekme fonksiyonu
+async function fetchSheetData(sheetId) {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+    const response = await fetch(url);
+    const text = await response.text();
+    const json = JSON.parse(text.substr(47).slice(0, -2));
+    return json.table.rows.map(row => row.c.map(cell => cell ? cell.v : ""));
+}
+
+// Google Sheets verisini göster
+async function showSheetData() {
+    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
+    const data = await fetchSheetData(sheetId);
+    const contentDiv = document.getElementById("content-display");
+    contentDiv.innerHTML = "";
+    // Tablo olarak göster
+    const table = document.createElement("table");
+    data.forEach(row => {
+        const tr = document.createElement("tr");
+        row.forEach(cell => {
+            const td = document.createElement("td");
+            td.textContent = cell;
+            tr.appendChild(td);
+        });
+        table.appendChild(tr);
+    });
+    contentDiv.appendChild(table);
+}
+
+// Sayfa yüklendiğinde Google Sheets verisini göster
+window.addEventListener('DOMContentLoaded', showSheetData);
+
 // Sayfa yüklendiğinde çalışacak UI hazırlık fonksiyonu
 const initializeUI = () => {
   // Temayı yükle
