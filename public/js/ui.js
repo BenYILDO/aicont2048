@@ -205,32 +205,17 @@ window.addEventListener('DOMContentLoaded', showSheetData);
 // --- Otomasyon: Form submit sonrası loading ve otomatik güncelleme ---
 let sheetPollingInterval = null;
 
-// --- Satır artışını takip için değişken ---
-let initialSheetRowCount = 0;
-
-// Sayfa açıldığında mevcut satır sayısını kaydet
-async function setInitialSheetRowCount() {
-    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
-    const data = await fetchSheetData(sheetId);
-    initialSheetRowCount = data.length;
-}
-
-// Form submit sonrası yeni satır eklenip eklenmediğini kontrol et
-function startSheetPollingRowIncrease() {
+function startSheetPolling() {
     let attempts = 0;
     const maxAttempts = 12; // 12x5=60sn
     showLoadingState();
     if (sheetPollingInterval) clearInterval(sheetPollingInterval);
     sheetPollingInterval = setInterval(async () => {
         attempts++;
-        const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
-        const data = await fetchSheetData(sheetId);
-        if (data.length > initialSheetRowCount) {
+        const lastContent = await getLastSheetContent();
+        if (lastContent) {
             clearInterval(sheetPollingInterval);
-            const lastContent = data[data.length - 1][8] || "";
             showEditableResult(lastContent);
-            // Yeni satır sayısını güncelle
-            initialSheetRowCount = data.length;
         } else if (attempts >= maxAttempts) {
             clearInterval(sheetPollingInterval);
             showNoResultState();
@@ -238,21 +223,17 @@ function startSheetPollingRowIncrease() {
     }, 5000);
 }
 
-// Form submit sonrası otomasyon tetikleme (satır artışı ile)
-function listenForFormSubmission(iframe) {
-    window.addEventListener('message', (event) => {
-        if (event.origin.includes('tally.so')) {
-            try {
-                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                if (data.type === 'tally:form:submitted' || 
-                    (data.eventName && data.eventName === 'tally-form:submitted')) {
-                    startSheetPollingRowIncrease();
-                }
-            } catch (error) {
-                console.error('Tally.so form mesajı işlenirken hata:', error);
-            }
+async function getLastSheetContent() {
+    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
+    const data = await fetchSheetData(sheetId);
+    let lastContent = "";
+    for (let i = data.length - 1; i >= 0; i--) {
+        if (data[i][8]) {
+            lastContent = data[i][8];
+            break;
         }
-    });
+    }
+    return lastContent;
 }
 
 function showEditableResult(content) {
@@ -358,6 +339,3 @@ const initScrollAnimations = () => {
   `;
   document.head.appendChild(style);
 };
-
-// Sayfa yüklendiğinde ilk satır sayısını kaydet
-window.addEventListener('DOMContentLoaded', setInitialSheetRowCount);
