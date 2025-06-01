@@ -184,18 +184,19 @@ async function showSheetData() {
     const data = await fetchSheetData(sheetId);
     const contentDiv = document.getElementById("content-display");
     contentDiv.innerHTML = "";
-    // Tablo olarak göster
-    const table = document.createElement("table");
-    data.forEach(row => {
-        const tr = document.createElement("tr");
-        row.forEach(cell => {
-            const td = document.createElement("td");
-            td.textContent = cell;
-            tr.appendChild(td);
-        });
-        table.appendChild(tr);
-    });
-    contentDiv.appendChild(table);
+    // I sütununun (index 8) son dolu satırını bul
+    let lastContent = "";
+    for (let i = data.length - 1; i >= 0; i--) {
+        if (data[i][8]) { // 9. sütun (I)
+            lastContent = data[i][8];
+            break;
+        }
+    }
+    if (lastContent) {
+        contentDiv.textContent = lastContent;
+    } else {
+        contentDiv.textContent = "Henüz içerik bulunamadı.";
+    }
 }
 
 // Sayfa yüklendiğinde Google Sheets verisini göster
