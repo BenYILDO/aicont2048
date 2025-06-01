@@ -339,3 +339,5 @@ const initScrollAnimations = () => {
   `;
   document.head.appendChild(style);
 };
+
+window.addEventListener('DOMContentLoaded', initializeUI);
