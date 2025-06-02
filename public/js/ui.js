@@ -361,9 +361,9 @@ async function showAIOutputByFormId() {
         let aiOutput = null;
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
-            // J sütununda (index 9) formId'yi ara
+            // Debug log: Aranan ve satırdaki formId'yi yazdır
+            console.log('Aranan formId:', formId, '| Satırdaki formId:', row.c[9] ? row.c[9].v : null);
             if (row.c[9] && row.c[9].v == formId) {
-                // Aynı satırda I sütunundaki (index 8) değeri al
                 aiOutput = row.c[8] ? row.c[8].v : null;
                 break;
             }
@@ -380,12 +380,11 @@ async function showAIOutputByFormId() {
             contentDiv.innerHTML = `
                 <div class="ai-output-modern empty">
                     <i class="fa-regular fa-clock"></i>
-                    <p>Henüz içerik oluşturulmadı. Lütfen formu doldurun ve birkaç saniye bekleyin.</p>
+                    <p>Henüz içerik oluşturulmadı. Formu doldurun ve birkaç saniye bekleyin.</p>
                 </div>
             `;
         }
     } catch (e) {
-        // Hata durumunda eski içeriği bozma
         console.error('AI çıktısı alınırken hata:', e);
     }
 }
