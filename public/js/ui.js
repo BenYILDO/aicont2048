@@ -348,24 +348,40 @@ const initScrollAnimations = () => {
   document.head.appendChild(style);
 };
 
-// Google Sheets'ten formId ile eşleşen AI çıktısını modern kutuda göster
+// Google Sheets'ten formId ile eşleşen AI çıktısını modern kutuda göster (CSV)
 async function showAIOutputByFormId() {
     const formId = sessionStorage.getItem('formId');
-    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7aGiTrnxVQl5wXJG2MTDA5QdpT9TRJJnKB_hwfzEy9Z4MYST4imiQY0BApf0quofNTsPX6LnHDiP_/pub?gid=0&single=true&output=csv";
+
     try {
-        const response = await fetch(url);
+        const response = await fetch(csvUrl);
         const text = await response.text();
-        const json = JSON.parse(text.substr(47).slice(0, -2));
-        const rows = json.table.rows;
+
+        // CSV parse et
+        const rows = text.split('\n').map(row => row.split(','));
         let aiOutput = null;
+        let headers = rows[0]; // Başlık satırı
+
+        // Başlık satırından sütun indexlerini bul
+        const formIdIndex = headers.findIndex(header => header.trim().toLowerCase() === 'formid');
+        const aiOutputIndex = headers.findIndex(header => header.trim().toLowerCase() === 'ai çıktısı');
+
+        if (formIdIndex === -1 || aiOutputIndex === -1) {
+            console.error('CSV başlıklarında formId veya AI Çıktısı bulunamadı.');
+            return;
+        }
+
+        // Satırlarda formId'yi ara (başlık satırını atla)
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
-            console.log('Aranan formId:', formId, '| Satırdaki formId:', row.c[9] ? row.c[9].v : null);
-            if (row.c[9] && row.c[9].v == formId) {
-                // I sütununda veri olup olmadığını daha güvenli kontrol et
-                if (row.c[8] && typeof row.c[8].v !== 'undefined' && row.c[8].v !== null && row.c[8].v !== '') {
-                    aiOutput = row.c[8].v;
+            // Debug log: Aranan formId ve satırdaki formId'yi yazdır
+            console.log('Aranan formId:', formId, '| Satırdaki formId:', row[formIdIndex] ? row[formIdIndex].trim() : null);
+
+            if (row[formIdIndex] && row[formIdIndex].trim() == formId) {
+                // Aynı satırda AI çıktısını al
+                if (row[aiOutputIndex] && row[aiOutputIndex].trim() !== '') {
+                     // CSV'den gelen tırnak işaretlerini temizle
+                    aiOutput = row[aiOutputIndex].trim().replace(/^"|"$/g, '');
                 } else {
                     aiOutput = '(AI çıktısı bulunamadı)';
                 }
@@ -373,8 +389,10 @@ async function showAIOutputByFormId() {
                 break;
             }
         }
+
         const contentDiv = document.getElementById("content-display");
-        if (aiOutput) {
+        if (aiOutput && aiOutput !== '(AI çıktısı bulunamadı)') {
+            // AI çıktısını modern kutuda göster
             contentDiv.innerHTML = `
                 <div class="ai-output-modern">
                     <h3><i class="fa-solid fa-robot"></i> AI Çıktısı</h3>
@@ -382,15 +400,25 @@ async function showAIOutputByFormId() {
                 </div>
             `;
         } else {
+            // İçerik bulunamadıysa veya boşsa placeholder göster
             contentDiv.innerHTML = `
                 <div class="ai-output-modern empty">
                     <i class="fa-regular fa-clock"></i>
-                    <p>Henüz içerik oluşturulmadı. Formu doldurun ve birkaç saniye bekleyin.</p>
+                    <p>Henüz içerik oluşturulmadı. Lütfen formu doldurun ve birkaç saniye bekleyin.</p>
                 </div>
             `;
         }
+
     } catch (e) {
         console.error('AI çıktısı alınırken hata:', e);
+        // Hata durumunda placeholder göster
+         const contentDiv = document.getElementById("content-display");
+         contentDiv.innerHTML = `
+                <div class="ai-output-modern empty">
+                    <i class="fa-solid fa-exclamation-circle"></i>
+                    <p>İçerik yüklenirken bir hata oluştu.</p>
+                </div>
+            `;
     }
 }
 
