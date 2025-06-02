@@ -15,7 +15,7 @@ const loadTallyForm = () => {
   // Benzersiz formId oluştur veya al
   let formId = sessionStorage.getItem('formId');
   if (!formId) {
-    formId = Date.now().toString();
+    formId = Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9);
     sessionStorage.setItem('formId', formId);
   }
   
