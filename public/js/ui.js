@@ -59,8 +59,15 @@ const listenForFormSubmission = (iframe) => {
             // Sonuç panelini göster ve yükleme animasyonunu başlat
             showLoadingState();
             
-            // API'dan sonuçları almaya başla
-            fetchResults(submissionId);
+            // API'dan sonuçları almaya başla (artık formId kullanıyoruz)
+            const formId = sessionStorage.getItem('formId');
+            if (formId) {
+                // Polling'i başlat
+                startSheetPolling();
+            } else {
+                console.error("Form gönderildi ama sessionStorage'da formId bulunamadı.");
+                showNoResultState();
+            }
           }
         }
       } catch (error) {
@@ -177,73 +184,153 @@ const setupSmoothScrolling = () => {
   });
 };
 
-// Google Sheets'ten veri çekme fonksiyonu
-async function fetchSheetData(sheetId) {
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
-    const response = await fetch(url);
-    const text = await response.text();
-    const json = JSON.parse(text.substr(47).slice(0, -2));
-    return json.table.rows.map(row => row.c.map(cell => cell ? cell.v : ""));
-}
+// Helper function to parse CSV data robustly
+function parseCsv(text) {
+    const rows = [];
+    let currentRow = [];
+    let currentValue = '';
+    let inQuotes = false;
 
-// Google Sheets verisini göster
-async function showSheetData() {
-    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
-    const data = await fetchSheetData(sheetId);
-    const contentDiv = document.getElementById("content-display");
-    contentDiv.innerHTML = "";
-    // I sütununun (index 8) son dolu satırını bul
-    let lastContent = "";
-    for (let i = data.length - 1; i >= 0; i--) {
-        if (data[i][8]) { // 9. sütun (I)
-            lastContent = data[i][8];
-            break;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                currentValue += '"';
+                i++; // Skip the next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            currentRow.push(currentValue.trim());
+            currentValue = '';
+        } else if (char === '\n' && !inQuotes) {
+            // Handle potential \r\n line endings
+            if (text[i - 1] === '\r') {
+                // Do nothing, already handled by \r
+            } else {
+                 currentRow.push(currentValue.trim());
+                 rows.push(currentRow);
+                 currentRow = [];
+                 currentValue = '';
+            }
+        } else if (char === '\r' && !inQuotes) {
+             currentRow.push(currentValue.trim());
+             rows.push(currentRow);
+             currentRow = [];
+             currentValue = '';
+        } else {
+            currentValue += char;
         }
     }
-    if (lastContent) {
-        contentDiv.textContent = lastContent;
-    } else {
-        contentDiv.textContent = "Henüz içerik bulunamadı.";
+
+    // Add the last value and row if exists
+    if (currentValue || currentRow.length > 0) {
+        currentRow.push(currentValue.trim());
+        rows.push(currentRow);
     }
+
+    return rows;
 }
 
-// Sayfa yüklendiğinde Google Sheets verisini göster
-window.addEventListener('DOMContentLoaded', showSheetData);
+// Google Sheets'ten veri çekme fonksiyonu (CSV formatı)
+async function fetchSheetCsvData(sheetCsvUrl) {
+    try {
+        const response = await fetch(sheetCsvUrl);
+        if (!response.ok) {
+            console.error(`HTTP error! status: ${response.status}`);
+            return null;
+        }
+        const text = await response.text();
+        return text;
+    } catch (error) {
+        console.error('Google Sheets CSV verisi çekilirken hata:', error);
+        return null;
+    }
+}
 
 // --- Otomasyon: Form submit sonrası loading ve otomatik güncelleme ---
 let sheetPollingInterval = null;
 
 function startSheetPolling() {
     let attempts = 0;
-    const maxAttempts = 12; // 12x5=60sn
+    const maxAttempts = 30; // 30x2=60sn (daha sık kontrol)
+    const pollingInterval = 2000; // 2 saniyede bir kontrol
+
     showLoadingState();
     if (sheetPollingInterval) clearInterval(sheetPollingInterval);
     sheetPollingInterval = setInterval(async () => {
         attempts++;
-        const lastContent = await getLastSheetContent();
-        if (lastContent) {
-            clearInterval(sheetPollingInterval);
-            showEditableResult(lastContent);
-        } else if (attempts >= maxAttempts) {
-            clearInterval(sheetPollingInterval);
-            showNoResultState();
+        console.log(`Sheets kontrol ediliyor (Deneme ${attempts}/${maxAttempts})...`);
+        const formId = sessionStorage.getItem('formId');
+        if (formId) {
+             const aiOutput = await getAIOutputByFormId(formId);
+            if (aiOutput) {
+                clearInterval(sheetPollingInterval);
+                showEditableResult(aiOutput);
+            } else if (attempts >= maxAttempts) {
+                clearInterval(sheetPollingInterval);
+                console.warn('Belirtilen formId için AI çıktısı bulunamadı.', formId);
+                showNoResultState();
+            }
+        } else {
+             console.error("sessionStorage'da formId bulunamadı.");
+             clearInterval(sheetPollingInterval);
+             showNoResultState();
         }
-    }, 5000);
+    }, pollingInterval);
 }
 
-async function getLastSheetContent() {
-    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
-    const data = await fetchSheetData(sheetId);
-    let lastContent = "";
-    for (let i = data.length - 1; i >= 0; i--) {
-        if (data[i][8]) {
-            lastContent = data[i][8];
-            break;
+// AI çıktısını formId'ye göre bulan fonksiyon
+async function getAIOutputByFormId(formIdToFind) {
+    const sheetCsvUrl = CONFIG.form.sheetCsvPublicUrl; // CONFIG dosyasından alınacak
+    const csvText = await fetchSheetCsvData(sheetCsvUrl);
+
+    if (!csvText) {
+        console.error('CSV verisi çekilemedi.');
+        return null;
+    }
+
+    const data = parseCsv(csvText);
+
+    if (data.length === 0) {
+        console.warn('CSV verisi boş.');
+        return null;
+    }
+
+    // Başlık satırını al ve indexleri bul (case-insensitive, trimmed)
+    const headers = data[0].map(header => header.trim().toLowerCase());
+    const formIdColIndex = headers.indexOf('formid');
+    // Searching for 'ai çıktısı' (lowercase with Turkish character) based on screenshot
+    const aiOutputColIndex = headers.indexOf('aiOutput');
+
+    if (formIdColIndex === -1 || aiOutputColIndex === -1) {
+        console.error('CSV başlıkları bulunamadı. "formID" veya "AI Çıktısı" sütunlarını kontrol edin.', {headers, formIdColIndex, aiOutputColIndex});
+        return null;
+    }
+
+    // FormId'ye göre ilgili satırı bul
+    for (let i = 1; i < data.length; i++) { // İlk satır başlık, 1'den başla
+        const row = data[i];
+        if (row[formIdColIndex] && row[formIdColIndex].trim() === formIdToFind) {
+            // İlgili AI çıktısını döndür
+            return row[aiOutputColIndex] ? row[aiOutputColIndex].trim() : null;
         }
     }
-    return lastContent;
+
+    console.warn(`Belirtilen formId (${formIdToFind}) CSV verisinde bulunamadı.`);
+    return null;
 }
 
+// Submission ID yerine formId kullanacak şekilde fetchResults fonksiyonunu güncelle
+async function fetchResults(submissionId) { // submissionId artık doğrudan kullanılmıyor
+     // startSheetPolling zaten listenForFormSubmission içinde çağrılıyor,
+     // bu fonksiyon artık sadece bir placeholder veya eski çağrıları yakalamak için duruyor.
+     console.log('fetchResults çağrıldı, polling startSheetPolling içinde başlatılıyor.');
+}
+
+// Sonuç içeriğini düzenlenebilir hale getir ve butonları göster
 function showEditableResult(content) {
     $('#loading-indicator').classList.add('hidden');
     $('#no-result').classList.add('hidden');
@@ -251,6 +338,10 @@ function showEditableResult(content) {
     contentDiv.innerText = content;
     contentDiv.setAttribute('contenteditable', 'true');
     $('#result-content').classList.remove('hidden');
+    
+    // Butonları göster
+    setupCopyButton();
+    setupDownloadButton(); // İndir butonu fonksiyonu eklenmişse
 }
 
 // --- Kopyala ve İndir butonları ---
@@ -271,161 +362,99 @@ function setupDownloadButton() {
     });
 }
 
-// --- Sayfa yüklendiğinde butonları hazırla ---
-window.addEventListener('DOMContentLoaded', () => {
-    setupCopyButton();
-    setupDownloadButton();
-});
-
 // Sayfa yüklendiğinde çalışacak UI hazırlık fonksiyonu
 const initializeUI = () => {
-  // Temayı yükle
-  loadSavedTheme();
-  
-  // Site metinlerini yükle
-  loadSiteTexts();
-  
-  // Tally.so formunu yükle
-  loadTallyForm();
-  
-  // Butonları ayarla
-  setupCopyButton();
-  setupNewContentButton();
-  setupThemeToggle();
-  setupSmoothScrolling();
-  
-  // Sayfa scroll animasyonları
-  initScrollAnimations();
+     console.log('UI başlatılıyor...');
+     // Diğer UI hazırlıklarını buraya ekleyebilirsiniz (smooth scrolling vb.)
+     setupSmoothScrolling();
+     setupThemeToggle();
+     setupNewContentButton(); // Yeni içerik oluştur butonunu ayarla
+     // Copy ve Download butonları artık showEditableResult içinde ayarlanacak
+     // setupCopyButton(); 
+     // setupDownloadButton();
 };
 
-// Sayfa kaydırma animasyonları
+// Scroll animasyonlarını başlat
 const initScrollAnimations = () => {
-  // IntersectionObserver API kullanarak elementlerin görünür olduğunda animasyon ekle
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('animate-in');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, {
-    threshold: 0.1
-  });
-  
-  // Animasyon eklenecek elementler
-  const animateElements = [
-    $('.hero-content'),
-    $('.hero-image'),
-    ...$$('.step'),
-    $('.form-container'),
-    $('.result-container')
-  ];
-  
-  // CSS sınıfları ekle
-  animateElements.forEach((el, index) => {
-    if (el) {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = `opacity 0.5s ease, transform 0.5s ease`;
-      el.style.transitionDelay = `${index * 0.1}s`;
-      
-      // Görünür olduğunda tetiklenecek sınıf
-      el.classList.add('animate-element');
-      
-      // Görünürlüğü izle
-      observer.observe(el);
-    }
-  });
-  
-  // CSS stil ekle
-  const style = document.createElement('style');
-  style.textContent = `
-    .animate-element.animate-in {
-      opacity: 1 !important;
-      transform: translateY(0) !important;
-    }
-  `;
-  document.head.appendChild(style);
+    // ScrollReveal konfigürasyonu
+    ScrollReveal().reveal('.form-section', { delay: 200, origin: 'top', distance: '20px' });
+    ScrollReveal().reveal('.result-panel', { delay: 200, origin: 'bottom', distance: '20px' });
+    // Diğer elementler için animasyonlar
+    ScrollReveal().reveal('.container', { delay: 100, origin: 'top', distance: '20px' });
+    ScrollReveal().reveal('h1, h2, p', { delay: 100, origin: 'left', distance: '20px', interval: 100 });
+    ScrollReveal().reveal('.button', { delay: 200, origin: 'bottom', distance: '20px', interval: 100 });
 };
 
-// Google Sheets'ten formId ile eşleşen AI çıktısını modern kutuda göster (CSV)
-async function showAIOutputByFormId() {
-    const formId = sessionStorage.getItem('formId');
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7aGiTrnxVQl5wXJG2MTDA5QdpT9TRJJnKB_hwfzEy9Z4MYST4imiQY0BApf0quofNTsPX6LnHDiP_/pub?gid=0&single=true&output=csv";
+// Yardımcı fonksiyon: CSS selector ile tek element seçme
+const $ = (selector) => document.querySelector(selector);
+// Yardımcı fonksiyon: CSS selector ile birden çok element seçme
+const $$ = (selector) => document.querySelectorAll(selector);
 
+// Yardımcı fonksiyon: Clipboard'a kopyalama
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    console.log('Metin panoya kopyalandı!');
+  } catch (err) {
+    console.error('Panoya kopyalama başarısız:', err);
+    // Alternatif kopyalama yöntemi (eski tarayıcılar için veya fallback)
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed'; // Gizli tut
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
     try {
-        const response = await fetch(csvUrl);
-        const text = await response.text();
-
-        // CSV parse et
-        const rows = text.split('\n').map(row => row.split(','));
-        let aiOutput = null;
-        let headers = rows[0]; // Başlık satırı
-
-        // Başlık satırından sütun indexlerini bul
-        const formIdIndex = headers.findIndex(header => header.trim().toLowerCase() === 'formid');
-        const aiOutputIndex = headers.findIndex(header => header.trim().toLowerCase() === 'ai çıktısı');
-
-        if (formIdIndex === -1 || aiOutputIndex === -1) {
-            console.error('CSV başlıklarında formId veya AI Çıktısı bulunamadı.');
-            return;
-        }
-
-        // Satırlarda formId'yi ara (başlık satırını atla)
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            // Debug log: Aranan formId ve satırdaki formId'yi yazdır
-            console.log('Aranan formId:', formId, '| Satırdaki formId:', row[formIdIndex] ? row[formIdIndex].trim() : null);
-
-            if (row[formIdIndex] && row[formIdIndex].trim() == formId) {
-                // Aynı satırda AI çıktısını al
-                if (row[aiOutputIndex] && row[aiOutputIndex].trim() !== '') {
-                     // CSV'den gelen tırnak işaretlerini temizle
-                    aiOutput = row[aiOutputIndex].trim().replace(/^"|"$/g, '');
-                } else {
-                    aiOutput = '(AI çıktısı bulunamadı)';
-                }
-                console.log('Eşleşen satır bulundu! AI çıktısı:', aiOutput);
-                break;
-            }
-        }
-
-        const contentDiv = document.getElementById("content-display");
-        if (aiOutput && aiOutput !== '(AI çıktısı bulunamadı)') {
-            // AI çıktısını modern kutuda göster
-            contentDiv.innerHTML = `
-                <div class="ai-output-modern">
-                    <h3><i class="fa-solid fa-robot"></i> AI Çıktısı</h3>
-                    <div class="ai-output-text">${aiOutput}</div>
-                </div>
-            `;
-        } else {
-            // İçerik bulunamadıysa veya boşsa placeholder göster
-            contentDiv.innerHTML = `
-                <div class="ai-output-modern empty">
-                    <i class="fa-regular fa-clock"></i>
-                    <p>Henüz içerik oluşturulmadı. Lütfen formu doldurun ve birkaç saniye bekleyin.</p>
-                </div>
-            `;
-        }
-
-    } catch (e) {
-        console.error('AI çıktısı alınırken hata:', e);
-        // Hata durumunda placeholder göster
-         const contentDiv = document.getElementById("content-display");
-         contentDiv.innerHTML = `
-                <div class="ai-output-modern empty">
-                    <i class="fa-solid fa-exclamation-circle"></i>
-                    <p>İçerik yüklenirken bir hata oluştu.</p>
-                </div>
-            `;
+      document.execCommand('copy');
+      console.log('Alternatif kopyalama başarılı!');
+    } catch (altErr) {
+      console.error('Alternatif kopyalama başarısız:', altErr);
+    } finally {
+      document.body.removeChild(textarea);
     }
+  }
 }
 
-// Sayfa yüklendiğinde ve her 5 saniyede bir AI çıktısını kontrol et
-window.addEventListener('DOMContentLoaded', () => {
-    showAIOutputByFormId();
-    setInterval(showAIOutputByFormId, 5000);
-});
+// Yardımcı fonksiyon: Tally.so URL'sinden submissionId çekme
+function extractSubmissionId(url) {
+    if (!url) return null;
+    try {
+        const urlObj = new URL(url);
+        // path'in son kısmını submissionId olarak al (örneğin, /submissions/xxxx)
+        const pathSegments = urlObj.pathname.split('/').filter(segment => segment !== '');
+        if (pathSegments.length > 0 && pathSegments[pathSegments.length - 1] !== 'submissions') {
+            return pathSegments[pathSegments.length - 1];
+        }
+    } catch (error) {
+        console.error("Submission ID URL'den çekilirken hata:", error);
+    }
+    return null;
+}
 
+// Tema değiştirme mantığı
+function toggleTheme() {
+    const body = document.body;
+    const currentTheme = body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+}
+
+// Kaydedilmiş temayı yükle
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light'; // Varsayılan tema light
+    document.body.setAttribute('data-theme', savedTheme);
+}
+
+// Sayfa yüklendiğinde UI'ı başlat
+window.addEventListener('DOMContentLoaded', () => {
+    loadSavedTheme(); // Temayı yükle
+    initializeUI(); // Diğer UI bileşenlerini başlat
+    loadTallyForm(); // Tally formunu yükle
+    initScrollAnimations(); // Scroll animasyonlarını başlat
+    
+    // Sayfa yüklendiğinde hemen sonuç kontrolü yapma, form submit olunca başla
+    // showAIOutputByFormId(); // Bu satır kaldırıldı
+});
 window.addEventListener('DOMContentLoaded', initializeUI);
