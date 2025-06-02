@@ -361,7 +361,9 @@ async function showAIOutputByFormId() {
         let aiOutput = null;
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
-            if (row.c[9] && row.c[9].v === formId) {
+            // J sütununda (index 9) formId'yi ara
+            if (row.c[9] && row.c[9].v == formId) {
+                // Aynı satırda I sütunundaki (index 8) değeri al
                 aiOutput = row.c[8] ? row.c[8].v : null;
                 break;
             }
