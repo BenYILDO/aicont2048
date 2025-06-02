@@ -12,9 +12,11 @@ const loadTallyForm = () => {
   // Form yükleme yerini temizle
   tallyFormContainer.innerHTML = '';
   
-  // Her sayfa yüklemede benzersiz formId oluştur
+  // Her sayfa yüklemede eski formId'yi sil, yeni formId oluştur
+  sessionStorage.removeItem('formId');
   const formId = Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9);
   sessionStorage.setItem('formId', formId);
+  console.log('Yeni formId:', formId);
   
   // Iframe oluştur
   const iframe = document.createElement('iframe');
