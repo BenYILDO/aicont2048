@@ -361,10 +361,15 @@ async function showAIOutputByFormId() {
         let aiOutput = null;
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
-            // Debug log: Aranan ve satırdaki formId'yi yazdır
             console.log('Aranan formId:', formId, '| Satırdaki formId:', row.c[9] ? row.c[9].v : null);
             if (row.c[9] && row.c[9].v == formId) {
-                aiOutput = row.c[8] ? row.c[8].v : null;
+                // I sütununda veri olup olmadığını daha güvenli kontrol et
+                if (row.c[8] && typeof row.c[8].v !== 'undefined' && row.c[8].v !== null && row.c[8].v !== '') {
+                    aiOutput = row.c[8].v;
+                } else {
+                    aiOutput = '(AI çıktısı bulunamadı)';
+                }
+                console.log('Eşleşen satır bulundu! AI çıktısı:', aiOutput);
                 break;
             }
         }
