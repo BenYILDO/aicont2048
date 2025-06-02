@@ -3,6 +3,11 @@
  * Kullanıcı arayüzü ile ilgili tüm fonksiyonları içerir.
  */
 
+// Yardımcı fonksiyon: CSS selector ile tek element seçme
+const $ = (selector) => document.querySelector(selector);
+// Yardımcı fonksiyon: CSS selector ile birden çok element seçme
+const $$ = (selector) => document.querySelectorAll(selector);
+
 // Tally.so form iframe'ini yükle
 const loadTallyForm = () => {
   const tallyFormContainer = $('#tally-form');
@@ -385,11 +390,6 @@ const initScrollAnimations = () => {
     ScrollReveal().reveal('.button', { delay: 200, origin: 'bottom', distance: '20px', interval: 100 });
 };
 
-// Yardımcı fonksiyon: CSS selector ile tek element seçme
-const $ = (selector) => document.querySelector(selector);
-// Yardımcı fonksiyon: CSS selector ile birden çok element seçme
-const $$ = (selector) => document.querySelectorAll(selector);
-
 // Yardımcı fonksiyon: Clipboard'a kopyalama
 async function copyToClipboard(text) {
   try {
@@ -453,6 +453,13 @@ window.addEventListener('DOMContentLoaded', () => {
     initializeUI(); // Diğer UI bileşenlerini başlat
     loadTallyForm(); // Tally formunu yükle
     initScrollAnimations(); // Scroll animasyonlarını başlat
+    
+    // Add event listeners from script.js after UI is initialized
+    if (typeof addEventListeners === 'function') {
+        addEventListeners();
+    } else {
+        console.error('addEventListeners fonksiyonu script.js içinde tanımlı değil veya erişilemiyor.');
+    }
     
     // Sayfa yüklendiğinde hemen sonuç kontrolü yapma, form submit olunca başla
     // showAIOutputByFormId(); // Bu satır kaldırıldı

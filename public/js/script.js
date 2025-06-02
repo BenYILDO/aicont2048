@@ -4,17 +4,20 @@
  */
 
 // Sayfa yüklendiğinde uygulamayı başlat
+// Remove this commented out block that might be causing issues
+/*
 // document.addEventListener('DOMContentLoaded', () => { // Remove this listener
 //   console.log('AI İçerik Üreticisi yükleniyor...');
   
-  // UI'yi başlat
+//   // UI'yi başlat
 //   initializeUI(); // Remove this call
   
-  // Event dinleyicilerini ekle
+//   // Event dinleyicilerini ekle
 //   addEventListeners(); // Move this call if necessary, or ensure it's called after UI is ready
   
 //   console.log('Uygulama başarıyla yüklendi!');
 // });
+*/
 
 // Event dinleyicileri
 const addEventListeners = () => {
@@ -140,6 +143,9 @@ const monitorPerformance = () => {
 
 // Performans izlemeyi başlat
 monitorPerformance();
+
+// Make addEventListeners globally accessible for ui.js to call
+window.addEventListeners = addEventListeners;
 
 // Add event listeners after UI is initialized (assuming this is called from ui.js)
 // addEventListeners(); // This call will be managed by ui.js or called explicitly after UI is ready
