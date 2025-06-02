@@ -348,4 +348,50 @@ const initScrollAnimations = () => {
   document.head.appendChild(style);
 };
 
+// Google Sheets'ten formId ile eşleşen AI çıktısını modern kutuda göster
+async function showAIOutputByFormId() {
+    const formId = sessionStorage.getItem('formId');
+    const sheetId = "1iE9WuCsiYiAnrGUY7ajX8fnlkSZp1rx5_vtE46R_tUY";
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+    try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+        let aiOutput = null;
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.c[9] && row.c[9].v === formId) {
+                aiOutput = row.c[8] ? row.c[8].v : null;
+                break;
+            }
+        }
+        const contentDiv = document.getElementById("content-display");
+        if (aiOutput) {
+            contentDiv.innerHTML = `
+                <div class="ai-output-modern">
+                    <h3><i class="fa-solid fa-robot"></i> AI Çıktısı</h3>
+                    <div class="ai-output-text">${aiOutput}</div>
+                </div>
+            `;
+        } else {
+            contentDiv.innerHTML = `
+                <div class="ai-output-modern empty">
+                    <i class="fa-regular fa-clock"></i>
+                    <p>Henüz içerik oluşturulmadı. Lütfen formu doldurun ve birkaç saniye bekleyin.</p>
+                </div>
+            `;
+        }
+    } catch (e) {
+        // Hata durumunda eski içeriği bozma
+        console.error('AI çıktısı alınırken hata:', e);
+    }
+}
+
+// Sayfa yüklendiğinde ve her 5 saniyede bir AI çıktısını kontrol et
+window.addEventListener('DOMContentLoaded', () => {
+    showAIOutputByFormId();
+    setInterval(showAIOutputByFormId, 5000);
+});
+
 window.addEventListener('DOMContentLoaded', initializeUI);

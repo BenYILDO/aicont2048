@@ -588,3 +588,29 @@ footer {
     height: 450px;
   }
 }
+
+.ai-output-modern {
+    background: #23272f;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    color: #fff;
+    font-size: 1.1em;
+}
+.ai-output-modern h3 {
+    margin-top: 0;
+    color: #a78bfa;
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ai-output-modern.empty {
+    text-align: center;
+    color: #aaa;
+}
+.ai-output-text {
+    margin-top: 12px;
+    white-space: pre-line;
+}
