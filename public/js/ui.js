@@ -457,4 +457,3 @@ window.addEventListener('DOMContentLoaded', () => {
     // Sayfa yüklendiğinde hemen sonuç kontrolü yapma, form submit olunca başla
     // showAIOutputByFormId(); // Bu satır kaldırıldı
 });
-window.addEventListener('DOMContentLoaded', initializeUI);

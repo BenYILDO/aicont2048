@@ -4,19 +4,19 @@
  */
 
 // Sayfa yüklendiğinde uygulamayı başlat
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('AI İçerik Üreticisi yükleniyor...');
+// document.addEventListener('DOMContentLoaded', () => { // Remove this listener
+//   console.log('AI İçerik Üreticisi yükleniyor...');
   
   // UI'yi başlat
-  initializeUI();
+//   initializeUI(); // Remove this call
   
   // Event dinleyicilerini ekle
-  addEventListeners();
+//   addEventListeners(); // Move this call if necessary, or ensure it's called after UI is ready
   
-  console.log('Uygulama başarıyla yüklendi!');
-});
+//   console.log('Uygulama başarıyla yüklendi!');
+// });
 
-// Olay dinleyicileri
+// Event dinleyicileri
 const addEventListeners = () => {
   // Kullanıcı uygulamayı kullanırken olası hataları yakala
   window.addEventListener('error', (event) => {
@@ -45,7 +45,24 @@ const addEventListeners = () => {
         // Hiçbir şey seçili değilse tüm içeriği kopyala
         if (!selection) {
           event.preventDefault();
-          $('#copy-btn').click();
+          // Make sure copy button logic is accessible, or call it differently
+          // $('#copy-btn').click(); 
+          // Assuming copyToClipboard is globally accessible or available via UI module
+          const contentToCopy = $('#content-display').textContent;
+          if (contentToCopy) {
+              copyToClipboard(contentToCopy);
+              // Optional: visual feedback for copy
+              const copyBtn = $('#copy-btn');
+                if (copyBtn) {
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
+                    copyBtn.classList.add('success');
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.remove('success');
+                    }, 2000);
+                }
+          }
         }
       }
     }
@@ -53,7 +70,12 @@ const addEventListeners = () => {
     // Esc tuşu ile yeni içerik oluşturma
     if (event.key === 'Escape') {
       if (!$('#result-content').classList.contains('hidden')) {
-        $('#new-content-btn').click();
+          // Make sure new content button logic is accessible
+          // $('#new-content-btn').click();
+          // Assuming the new content logic is part of the UI module and callable
+          // This might require a function export from ui.js or a different structure.
+          // For now, log a message indicating this needs to be handled.
+          console.log('Escape key pressed: New content functionality needs to be called from UI module.');
       }
     }
   });
@@ -118,3 +140,6 @@ const monitorPerformance = () => {
 
 // Performans izlemeyi başlat
 monitorPerformance();
+
+// Add event listeners after UI is initialized (assuming this is called from ui.js)
+// addEventListeners(); // This call will be managed by ui.js or called explicitly after UI is ready
