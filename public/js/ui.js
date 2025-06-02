@@ -12,9 +12,18 @@ const loadTallyForm = () => {
   // Form yükleme yerini temizle
   tallyFormContainer.innerHTML = '';
   
+  // Benzersiz formId oluştur veya al
+  let formId = sessionStorage.getItem('formId');
+  if (!formId) {
+    formId = Date.now().toString();
+    sessionStorage.setItem('formId', formId);
+  }
+  
   // Iframe oluştur
   const iframe = document.createElement('iframe');
-  iframe.src = CONFIG.form.tallyFormUrl;
+  iframe.id = 'tally-frame';
+  // Tally formu URL'sine formId parametresi ekle
+  iframe.src = CONFIG.form.tallyFormUrl + '?formId=' + formId;
   iframe.width = '100%';
   iframe.height = '100%';
   iframe.frameBorder = '0';
