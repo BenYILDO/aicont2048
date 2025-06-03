@@ -4,13 +4,13 @@
  */
 
 // Yardımcı fonksiyon: CSS selector ile tek element seçme
-const $ = (selector) => document.querySelector(selector);
+const querySelector = (selector) => document.querySelector(selector);
 // Yardımcı fonksiyon: CSS selector ile birden çok element seçme
-const $$ = (selector) => document.querySelectorAll(selector);
+const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
 // Tally.so form iframe'ini yükle
 const loadTallyForm = () => {
-  const tallyFormContainer = $('#tally-form');
+  const tallyFormContainer = querySelector('#tally-form');
   
   if (!tallyFormContainer) return;
   
@@ -84,41 +84,41 @@ const listenForFormSubmission = (iframe) => {
 
 // Yükleme durumunu göster
 const showLoadingState = () => {
-  $('#no-result').classList.add('hidden');
-  $('#result-content').classList.add('hidden');
-  $('#loading-indicator').classList.remove('hidden');
+  querySelector('#no-result').classList.add('hidden');
+  querySelector('#result-content').classList.add('hidden');
+  querySelector('#loading-indicator').classList.remove('hidden');
   
   // Sayfayı sonuç paneline kaydır
-  $('#result-panel').scrollIntoView({ behavior: 'smooth' });
+  querySelector('#result-panel').scrollIntoView({ behavior: 'smooth' });
 };
 
 // Sonuç içeriğini göster
 const showResultContent = (content) => {
-  $('#loading-indicator').classList.add('hidden');
-  $('#no-result').classList.add('hidden');
+  querySelector('#loading-indicator').classList.add('hidden');
+  querySelector('#no-result').classList.add('hidden');
   
   // Sonuç içeriğini ayarla
-  $('#content-display').textContent = content;
+  querySelector('#content-display').textContent = content;
   
   // Sonuç panelini göster
-  $('#result-content').classList.remove('hidden');
+  querySelector('#result-content').classList.remove('hidden');
 };
 
 // Sonuç bulunamadı durumunu göster
 const showNoResultState = () => {
-  $('#loading-indicator').classList.add('hidden');
-  $('#result-content').classList.add('hidden');
-  $('#no-result').classList.remove('hidden');
+  querySelector('#loading-indicator').classList.add('hidden');
+  querySelector('#result-content').classList.add('hidden');
+  querySelector('#no-result').classList.remove('hidden');
 };
 
 // Kopyalama butonunu işlevsel hale getir
 const setupCopyButton = () => {
-  const copyBtn = $('#copy-btn');
+  const copyBtn = querySelector('#copy-btn');
   
   if (!copyBtn) return;
   
   copyBtn.addEventListener('click', async () => {
-    const content = $('#content-display').textContent;
+    const content = querySelector('#content-display').textContent;
     
     if (!content) return;
     
@@ -144,23 +144,23 @@ const setupCopyButton = () => {
 
 // Yeni içerik oluşturma butonunu ayarla
 const setupNewContentButton = () => {
-  const newContentBtn = $('#new-content-btn');
+  const newContentBtn = querySelector('#new-content-btn');
   
   if (!newContentBtn) return;
   
   newContentBtn.addEventListener('click', () => {
     // Formu sıfırla ve görünüme kaydır
-    const iframe = $('#tally-form iframe');
+    const iframe = querySelector('#tally-form iframe');
     if (iframe) {
       iframe.src = CONFIG.form.tallyFormUrl;
-      $('#form-section').scrollIntoView({ behavior: 'smooth' });
+      querySelector('#form-section').scrollIntoView({ behavior: 'smooth' });
     }
   });
 };
 
 // Tema değiştirme butonunu işlevsel hale getir
 const setupThemeToggle = () => {
-  const themeToggleBtn = $('#theme-toggle');
+  const themeToggleBtn = querySelector('#theme-toggle');
   
   if (!themeToggleBtn) return;
   
@@ -172,7 +172,7 @@ const setupThemeToggle = () => {
 
 // Yumuşak kaydırma için tüm iç bağlantıları ayarla
 const setupSmoothScrolling = () => {
-  const internalLinks = $$('a[href^="#"]');
+  const internalLinks = querySelectorAll('a[href^="#"]');
   
   internalLinks.forEach(link => {
     link.addEventListener('click', (e) => {
@@ -181,7 +181,7 @@ const setupSmoothScrolling = () => {
       const targetId = link.getAttribute('href');
       if (targetId === '#') return;
       
-      const targetElement = $(targetId);
+      const targetElement = querySelector(targetId);
       if (targetElement) {
         targetElement.scrollIntoView({ behavior: 'smooth' });
       }
@@ -307,8 +307,8 @@ async function getAIOutputByFormId(formIdToFind) {
     // Başlık satırını al ve indexleri bul (case-insensitive, trimmed)
     const headers = data[0].map(header => header.trim().toLowerCase());
     const formIdColIndex = headers.indexOf('formid');
-    // Searching for 'ai çıktısı' (lowercase with Turkish character) based on screenshot
-    const aiOutputColIndex = headers.indexOf('aiOutput');
+    // Searching for 'ai çıktısı' (lowercase with Turkish character) based on previous interaction analysis
+    const aiOutputColIndex = headers.indexOf('ai çıktısı');
 
     if (formIdColIndex === -1 || aiOutputColIndex === -1) {
         console.error('CSV başlıkları bulunamadı. "formID" veya "AI Çıktısı" sütunlarını kontrol edin.', {headers, formIdColIndex, aiOutputColIndex});
@@ -328,21 +328,21 @@ async function getAIOutputByFormId(formIdToFind) {
     return null;
 }
 
-// Submission ID yerine formId kullanacak şekilde fetchResults fonksiyonunu güncelle
-async function fetchResults(submissionId) { // submissionId artık doğrudan kullanılmıyor
-     // startSheetPolling zaten listenForFormSubmission içinde çağrılıyor,
-     // bu fonksiyon artık sadece bir placeholder veya eski çağrıları yakalamak için duruyor.
-     console.log('fetchResults çağrıldı, polling startSheetPolling içinde başlatılıyor.');
+// Submission ID yerine formId kullanacak şekilde fetchResults fonksiyonunu güncelle (placeholder)
+async function fetchResults(submissionId) { 
+     console.log('fetchResults çağrıldı.');
+     // startSheetPolling zaten listenForFormSubmission içinde veya sayfa yüklendiğinde (eğer sonuç varsa)
+     // çağrılıyor, bu fonksiyon artık sadece bir placeholder veya eski çağrıları yakalamak için duruyor.
 }
 
 // Sonuç içeriğini düzenlenebilir hale getir ve butonları göster
 function showEditableResult(content) {
-    $('#loading-indicator').classList.add('hidden');
-    $('#no-result').classList.add('hidden');
-    const contentDiv = $('#content-display');
+    querySelector('#loading-indicator').classList.add('hidden');
+    querySelector('#no-result').classList.add('hidden');
+    const contentDiv = querySelector('#content-display');
     contentDiv.innerText = content;
     contentDiv.setAttribute('contenteditable', 'true');
-    $('#result-content').classList.remove('hidden');
+    querySelector('#result-content').classList.remove('hidden');
     
     // Butonları göster
     setupCopyButton();
@@ -351,10 +351,10 @@ function showEditableResult(content) {
 
 // --- Kopyala ve İndir butonları ---
 function setupDownloadButton() {
-    const downloadBtn = $('#download-btn');
+    const downloadBtn = querySelector('#download-btn');
     if (!downloadBtn) return;
     downloadBtn.addEventListener('click', () => {
-        const content = $('#content-display').innerText;
+        const content = querySelector('#content-display').innerText;
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -369,25 +369,24 @@ function setupDownloadButton() {
 
 // Sayfa yüklendiğinde çalışacak UI hazırlık fonksiyonu
 const initializeUI = () => {
-     console.log('UI başlatılıyor...');
+     console.log('initializeUI çağrıldı. UI başlatılıyor...');
      // Diğer UI hazırlıklarını buraya ekleyebilirsiniz (smooth scrolling vb.)
      setupSmoothScrolling();
      setupThemeToggle();
      setupNewContentButton(); // Yeni içerik oluştur butonunu ayarla
      // Copy ve Download butonları artık showEditableResult içinde ayarlanacak
-     // setupCopyButton(); 
-     // setupDownloadButton();
 };
 
 // Scroll animasyonlarını başlat
 const initScrollAnimations = () => {
+    console.log('initScrollAnimations çağrıldı.');
     // ScrollReveal konfigürasyonu
-    ScrollReveal().reveal('.form-section', { delay: 200, origin: 'top', distance: '20px' });
-    ScrollReveal().reveal('.result-panel', { delay: 200, origin: 'bottom', distance: '20px' });
+    // ScrollReveal().reveal('.form-section', { delay: 200, origin: 'top', distance: '20px' }); // Commented out due to potential conflict or library issue
+    // ScrollReveal().reveal('.result-panel', { delay: 200, origin: 'bottom', distance: '20px' }); // Commented out
     // Diğer elementler için animasyonlar
-    ScrollReveal().reveal('.container', { delay: 100, origin: 'top', distance: '20px' });
-    ScrollReveal().reveal('h1, h2, p', { delay: 100, origin: 'left', distance: '20px', interval: 100 });
-    ScrollReveal().reveal('.button', { delay: 200, origin: 'bottom', distance: '20px', interval: 100 });
+    // ScrollReveal().reveal('.container', { delay: 100, origin: 'top', distance: '20px' }); // Commented out
+    // ScrollReveal().reveal('h1, h2, p', { delay: 100, origin: 'left', distance: '20px', interval: 100 }); // Commented out
+    // ScrollReveal().reveal('.button', { delay: 200, origin: 'bottom', distance: '20px', interval: 100 }); // Commented out
 };
 
 // Yardımcı fonksiyon: Clipboard'a kopyalama
@@ -443,6 +442,7 @@ function toggleTheme() {
 
 // Kaydedilmiş temayı yükle
 function loadSavedTheme() {
+    console.log('loadSavedTheme çağrıldı.');
     const savedTheme = localStorage.getItem('theme') || 'light'; // Varsayılan tema light
     document.body.setAttribute('data-theme', savedTheme);
 }

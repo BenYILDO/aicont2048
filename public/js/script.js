@@ -3,7 +3,6 @@
  * Tüm uygulamayı başlatan ve diğer modülleri birleştiren ana dosya.
  */
 
-// Sayfa yüklendiğinde uygulamayı başlat
 // Remove this commented out block that might be causing issues
 /*
 // document.addEventListener('DOMContentLoaded', () => { // Remove this listener
@@ -28,7 +27,8 @@ const addEventListeners = () => {
   
   // Sayfadan ayrılmadan önce kullanıcıya uyarı göster (form dolduruyorsa)
   window.addEventListener('beforeunload', (event) => {
-    const isFormActive = !$('#loading-indicator').classList.contains('hidden');
+    // Use querySelector instead of $ for consistency
+    const isFormActive = !querySelector('#loading-indicator').classList.contains('hidden');
     
     if (isFormActive) {
       // Form gönderimi yapılıyorsa, kullanıcıya uyarı göster
@@ -42,7 +42,8 @@ const addEventListeners = () => {
   document.addEventListener('keydown', (event) => {
     // Ctrl/Cmd + C ile içeriği kopyala
     if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
-      if (!$('#result-content').classList.contains('hidden')) {
+      // Use querySelector instead of $
+      if (!querySelector('#result-content').classList.contains('hidden')) {
         const selection = window.getSelection().toString();
         
         // Hiçbir şey seçili değilse tüm içeriği kopyala
@@ -51,11 +52,14 @@ const addEventListeners = () => {
           // Make sure copy button logic is accessible, or call it differently
           // $('#copy-btn').click(); 
           // Assuming copyToClipboard is globally accessible or available via UI module
-          const contentToCopy = $('#content-display').textContent;
+          // Use querySelector for #content-display
+          const contentToCopy = querySelector('#content-display').textContent;
           if (contentToCopy) {
+              // Assuming copyToClipboard is a global function or imported
               copyToClipboard(contentToCopy);
               // Optional: visual feedback for copy
-              const copyBtn = $('#copy-btn');
+              // Use querySelector for #copy-btn
+              const copyBtn = querySelector('#copy-btn');
                 if (copyBtn) {
                     const originalText = copyBtn.innerHTML;
                     copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
@@ -72,13 +76,15 @@ const addEventListeners = () => {
     
     // Esc tuşu ile yeni içerik oluşturma
     if (event.key === 'Escape') {
-      if (!$('#result-content').classList.contains('hidden')) {
+      // Use querySelector instead of $
+      if (!querySelector('#result-content').classList.contains('hidden')) {
           // Make sure new content button logic is accessible
           // $('#new-content-btn').click();
           // Assuming the new content logic is part of the UI module and callable
           // This might require a function export from ui.js or a different structure.
           // For now, log a message indicating this needs to be handled.
           console.log('Escape key pressed: New content functionality needs to be called from UI module.');
+          // Consider calling a function from ui.js here if needed, e.g., ui.resetForm();
       }
     }
   });
@@ -99,8 +105,9 @@ const addEventListeners = () => {
 
 // Ekran boyutuna göre form yüksekliğini ayarla
 const adjustFormHeight = () => {
-  const formContainer = $('.tally-form-container');
-  const resultPanel = $('.result-panel');
+  // Use querySelector instead of $
+  const formContainer = querySelector('.tally-form-container');
+  const resultPanel = querySelector('.result-panel');
   
   if (!formContainer || !resultPanel) return;
   
