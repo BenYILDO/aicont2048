@@ -1,3 +1,4 @@
+(() => {
 /**
  * UI İşlemleri
  * Kullanıcı arayüzü ile ilgili tüm fonksiyonları içerir.
@@ -473,3 +474,4 @@ window.addEventListener('DOMContentLoaded', () => {
     // Sayfa yüklendiğinde hemen sonuç kontrolü yapma, form submit olunca başla
     // showAIOutputByFormId(); // Bu satır kaldırıldı
 });
+})();
