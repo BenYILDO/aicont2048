@@ -449,17 +449,26 @@ function loadSavedTheme() {
 
 // Sayfa yüklendiğinde UI'ı başlat
 window.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded fired. Starting UI initialization...');
     loadSavedTheme(); // Temayı yükle
+    console.log('loadSavedTheme finished.');
     initializeUI(); // Diğer UI bileşenlerini başlat
+    console.log('initializeUI finished.');
     loadTallyForm(); // Tally formunu yükle
+    console.log('loadTallyForm finished.');
     initScrollAnimations(); // Scroll animasyonlarını başlat
+    console.log('initScrollAnimations finished.');
     
     // Add event listeners from script.js after UI is initialized
     if (typeof addEventListeners === 'function') {
+        console.log('Calling addEventListeners.');
         addEventListeners();
+        console.log('addEventListeners finished.');
     } else {
         console.error('addEventListeners fonksiyonu script.js içinde tanımlı değil veya erişilemiyor.');
     }
+    
+    console.log('UI initialization complete.');
     
     // Sayfa yüklendiğinde hemen sonuç kontrolü yapma, form submit olunca başla
     // showAIOutputByFormId(); // Bu satır kaldırıldı
