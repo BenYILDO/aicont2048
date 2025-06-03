@@ -56,19 +56,24 @@ const addEventListeners = () => {
           const contentToCopy = querySelector('#content-display').textContent;
           if (contentToCopy) {
               // Assuming copyToClipboard is a global function or imported
-              copyToClipboard(contentToCopy);
-              // Optional: visual feedback for copy
-              // Use querySelector for #copy-btn
-              const copyBtn = querySelector('#copy-btn');
-                if (copyBtn) {
-                    const originalText = copyBtn.innerHTML;
-                    copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
-                    copyBtn.classList.add('success');
-                    setTimeout(() => {
-                        copyBtn.innerHTML = originalText;
-                        copyBtn.classList.remove('success');
-                    }, 2000);
-                }
+              // Call the copyToClipboard function defined in ui.js
+              if (typeof copyToClipboard === 'function') {
+                  copyToClipboard(contentToCopy);
+                   // Optional: visual feedback for copy
+                  // Use querySelector for #copy-btn
+                  const copyBtn = querySelector('#copy-btn');
+                    if (copyBtn) {
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
+                        copyBtn.classList.add('success');
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                            copyBtn.classList.remove('success');
+                        }, 2000);
+                    }
+              } else {
+                  console.error('copyToClipboard fonksiyonu tanımlı değil veya erişilemiyor.');
+              }
           }
         }
       }
