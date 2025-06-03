@@ -328,11 +328,13 @@ async function getAIOutputByFormId(formIdToFind) {
 }
 
 // Submission ID yerine formId kullanacak şekilde fetchResults fonksiyonunu güncelle
-async function fetchResults(submissionId) { // submissionId artık doğrudan kullanılmıyor
-     // startSheetPolling zaten listenForFormSubmission içinde çağrılıyor,
-     // bu fonksiyon artık sadece bir placeholder veya eski çağrıları yakalamak için duruyor.
-     console.log('fetchResults çağrıldı, polling startSheetPolling içinde başlatılıyor.');
-}
+// async function fetchResults(submissionId) { // submissionId artık doğrudan kullanılmıyor
+//      // startSheetPolling zaten listenForFormSubmission içinde çağrılıyor,
+//      // bu fonksiyon artık sadece bir placeholder veya eski çağrıları yakalamak için duruyor.
+//      console.log('fetchResults çağrıldı, polling startSheetPolling içinde başlatılıyor.');
+// }
+
+// Minor edit to trigger git detection
 
 // Sonuç içeriğini düzenlenebilir hale getir ve butonları göster
 function showEditableResult(content) {
