@@ -223,7 +223,6 @@ function parseCsv(text) {
         } else if (char === '\r' && !inQuotes) {
              currentRow.push(currentValue.trim());
              rows.push(currentRow);
-             currentRow = [];
              currentValue = '';
         } else {
             currentValue += char;
@@ -308,7 +307,7 @@ async function getAIOutputByFormId(formIdToFind) {
     const headers = data[0].map(header => header.trim().toLowerCase());
     const formIdColIndex = headers.indexOf('formid');
     // Searching for 'ai çıktısı' (lowercase with Turkish character) based on screenshot
-    const aiOutputColIndex = headers.indexOf('aiOutput');
+    const aiOutputColIndex = headers.indexOf('ai çıktısı'); // Corrected header key based on previous interaction analysis
 
     if (formIdColIndex === -1 || aiOutputColIndex === -1) {
         console.error('CSV başlıkları bulunamadı. "formID" veya "AI Çıktısı" sütunlarını kontrol edin.', {headers, formIdColIndex, aiOutputColIndex});
@@ -382,12 +381,12 @@ const initializeUI = () => {
 // Scroll animasyonlarını başlat
 const initScrollAnimations = () => {
     // ScrollReveal konfigürasyonu
-    ScrollReveal().reveal('.form-section', { delay: 200, origin: 'top', distance: '20px' });
-    ScrollReveal().reveal('.result-panel', { delay: 200, origin: 'bottom', distance: '20px' });
+    // ScrollReveal().reveal('.form-section', { delay: 200, origin: 'top', distance: '20px' }); // Commented out due to potential conflict or library issue
+    // ScrollReveal().reveal('.result-panel', { delay: 200, origin: 'bottom', distance: '20px' }); // Commented out
     // Diğer elementler için animasyonlar
-    ScrollReveal().reveal('.container', { delay: 100, origin: 'top', distance: '20px' });
-    ScrollReveal().reveal('h1, h2, p', { delay: 100, origin: 'left', distance: '20px', interval: 100 });
-    ScrollReveal().reveal('.button', { delay: 200, origin: 'bottom', distance: '20px', interval: 100 });
+    // ScrollReveal().reveal('.container', { delay: 100, origin: 'top', distance: '20px' }); // Commented out
+    // ScrollReveal().reveal('h1, h2, p', { delay: 100, origin: 'left', distance: '20px', interval: 100 }); // Commented out
+    // ScrollReveal().reveal('.button', { delay: 200, origin: 'bottom', distance: '20px', interval: 100 }); // Commented out
 };
 
 // Yardımcı fonksiyon: Clipboard'a kopyalama
